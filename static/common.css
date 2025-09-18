@@ -1,0 +1,70 @@
+/* general */
+h1, h2, th {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+p, td, li{
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+/* Custom Navbar */
+nav{
+    background-color: #C17FF0;
+}
+#main-nav{
+    border-bottom: 2px black solid;
+    margin: 0%;
+    padding: 0%;
+    list-style-type: none;
+    overflow: hidden;
+}
+
+#main-nav li{
+    float: left;
+}
+
+#main-nav li a{
+    display: block;
+    text-align: center;
+    padding: 10px 12px;
+    margin: 2px;
+    text-decoration: none;
+    border-top: 2px black solid;
+    border-left: 2px black solid;
+    border-right: 2px black solid;
+    color: darkblue;
+    background-color: yellow;
+}
+
+#main-nav li a:hover{
+    color: yellow;
+    background-color: darkblue;
+    font-weight: bold;
+}
+
+/* latest posts */
+#latest-table{
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#latest-table td th{
+    border: 1px solid black;
+    text-align: left;
+    padding: 8px;
+}
+
+#latest-table tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+/* login/signup */
+#error{
+    display: block;
+    background-color: red;
+    border: 2px black dashed;
+    width: fit-content;
+    padding: 10px;
+    margin: 2px;
+}

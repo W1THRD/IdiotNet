@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}IdiotNet | Home{% endblock %}
+{% block content %}
+    <h1>Welcome to IdiotNet!</h1>
+    <h2>Latest Posts</h2>
+    <ol id="latest">
+        {% for post in latest_posts(3) %}
+            <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+        {% endfor %}
+    </ol>
+    <a href="{{ routes['latest'] }}">See More...</a>
+{% endblock %}

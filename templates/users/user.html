@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}IdiotNet | {{ search_user.username }}{% endblock %}
+{% block content %}
+    <h1>{{ search_user.username }}</h1>
+    <h3><span id="follower-count">{{ search_user.follower_count() }}</span> Followers</h3>
+    {% if user %}
+    <button id="follow" data-username="{{ search_user.username }}" data-follow="{{ not user.username in search_user.followers }}"></button>
+    {% endif %}
+    <h2>Latest Posts</h2>
+    {% if posts_latest != [] %}
+        <ol>
+            {% for post in posts_latest %}
+                <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+            {% endfor %}
+        </ol>
+        <a href="{{ routes['user_posts'].format(search_user.username) }}">See More...</a>
+    {% else %}
+        <p>This loser hasn't posted anything yet!!!</p>
+    {% endif %}
+    <h2>Liked Posts</h2>
+    {% if posts_liked != [] %}
+        <ol>
+            {% for post in posts_liked %}
+                <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+            {% endfor %}
+        </ol>
+        <a href="{{ routes['user_liked_posts'].format(search_user.username) }}">See More...</a>
+    {% else %}
+        <p>Hmmm... this person doesn't like anything......</p>
+    {% endif %}
+
+{% endblock %}

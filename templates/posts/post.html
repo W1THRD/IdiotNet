@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}IdiotNet | {{ post.title }}{% endblock %}
+{% block content %}
+    <h1>{{ post.title }}</h1>
+    <h2>Posted by <a href="{{ author.url }}"> {{ author.username }}</a> at {{ post.date_posted.strftime("%Y-%m-%d %H:%M:%S") }}</h2>
+    <h3><span id="like-count">{{ post.likes }}</span> Likes </h3>
+    {% if user %}
+    <button id="like" data-id="{{ post.post_id }}" data-like="{{ not post.post_id in user.liked_posts }}"></button>
+    {% endif %}
+    <p>{{ post.content }}</p>
+{% endblock %}

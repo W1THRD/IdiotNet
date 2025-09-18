@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/static/common.css">
+  </head>
+  <body>
+    <nav>
+        <img src="/static/logo.png" alt="IdiotNet">
+        <ul id="main-nav">
+        <li><a href="{{ routes['home'] }}">Home</a></li>
+        <li><a href="{{ routes['latest'] }}">Latest</a></li>
+        <li><a href="{{ routes['about'] }}">About</a></li>
+
+        {% if user %}
+            <li><a href="{{ routes['new_post'] }}">New Post</a></li>
+            <li><a href="{{ user.url }}">{{ user.username }}</a></li>
+            <li><a href="{{ routes['logout'] }}">Logout</a></li>
+        {% else %}
+            <li><a href="{{ routes['login'] }}">Login</a></li>
+            <li><a href="{{ routes['signup'] }}">Signup</a></li>
+        {% endif %}
+        </ul>
+
+    </nav>
+    {% block content %}{% endblock %}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="/static/common.js"></script>
+  </body>
+</html>

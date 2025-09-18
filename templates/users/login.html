@@ -1,0 +1,17 @@
+{% extends 'form-base.html' %}
+
+{% block title %}IdiotNet | Login{% endblock %}
+{% block content %}
+    <h1>Login</h1>
+    {% if error_message %}
+        <div id="error">
+            <h3>Error</h3>
+            <p>{{ error_message }}</p>
+        </div>
+    {% endif %}
+    <form action="{{ routes["login"] }}" method="POST">
+        <label for="username">Username:</label><input name="username" type="text" id="username"><br>
+        <label for="password">Password:</label><input name="password" type="password" id="password"><br>
+        <input type="submit" value="Submit">
+    </form>
+{% endblock %}
