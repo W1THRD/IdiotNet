@@ -7,6 +7,9 @@
     {% if user %}
     <button id="follow" data-username="{{ search_user.username }}" data-follow="{{ not user.username in search_user.followers }}"></button>
     {% endif %}
+    <h2>About</h2>
+    <p id="about">{{ user.bio }}</p>
+    <a href="{{ request.url + "\edit" }}">Edit...</a>
     <h2>Latest Posts</h2>
     {% if posts_latest != [] %}
         <ol>

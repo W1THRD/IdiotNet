@@ -12,6 +12,7 @@ class User:
         self.posts = []
         self.liked_posts = []
         self.is_created = False
+        self.bio = ""
         self.url = None
 
     def create(self, connection):
@@ -23,9 +24,9 @@ class User:
                 self.is_created = True
                 self.date_created = datetime.datetime.now()
                 self.url = routes["user"].format(self.username)
-                query = "INSERT INTO users (username, date_created, password, followers, posts, following, liked_posts) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                query = "INSERT INTO users (username, date_created, password, followers, posts, following, liked_posts, bio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                 data = (self.username, self.date_created, self.password, json.dumps(self.followers), json.dumps(self.posts), json.dumps(self.following),
-                        json.dumps(self.liked_posts))
+                        json.dumps(self.liked_posts), self.bio)
                 cursor.execute(query, data)
                 connection.commit()
                 cursor.close()
@@ -100,6 +101,13 @@ class User:
         else:
             raise NameError("User doesn't exist")
 
+    def update_bio(self, connection, bio):
+        self.bio = bio
+        cursor = connection.cursor()
+        cursor.execute("UPDATE users SET bio = ? WHERE username = ?", (bio, self.username))
+        connection.commit()
+        cursor.close()
+
     def latest(self, connection, count, offset=0):
         posts = []
         self.posts.sort(reverse=True)
@@ -128,6 +136,7 @@ class User:
             u.posts = json.loads(data[4])
             u.following = json.loads(data[5])
             u.liked_posts = json.loads(data[6])
+            u.bio = data[7]
             u.is_created = True
             u.url = routes["user"].format(u.username)
             return u

@@ -169,6 +169,25 @@ def new_post():
             print(f"{local_user.username} created post #{staged_post.post_id}")
             return redirect(staged_post.url)
 
+@app.route(routes["user_edit"].format("<username>"), methods=['GET', 'POST'])
+def user_edit(username):
+    connection = sqlite3.connect('idiotnet.sqlite')
+    local_user = check_token(connection, request.cookies)
+
+    if not local_user:
+        connection.close()
+        return redirect(routes["login"])
+    else:
+        if request.method == 'GET':
+            connection.close()
+            return render_template("users/edit.html", routes=routes, user=local_user)
+        else:
+            content = request.form.get('content')
+
+            local_user.update_bio(connection, content)
+            print(f"{local_user.username} edited their user bio")
+            return redirect(routes["user"].format(local_user.username))
+
 @app.route(routes["signup"], methods=['GET', 'POST'])
 def signup():
     connection = sqlite3.connect('idiotnet.sqlite')

@@ -29,5 +29,7 @@ create table users
     followers    TEXT default '[]',
     posts        TEXT default '[]',
     following    TEXT default '[]',
-    liked_posts  TEXT default '[]'
+    liked_posts  TEXT default '[]',
+    bio          TEXT
 );
+
