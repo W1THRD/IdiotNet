@@ -6,10 +6,10 @@ product intended for the public internet.
 ## Record-Objects
 Each database table has a corresponding class to represent a record from said table.
 There are two constructors for each:
-- default constructor: `User()`, `Post()`, and `Token()` create a new object that hasn't been committed to the database yet
+- default constructor: `User()`, `Comment()`, `Post()`, and `Token()` create a new object that hasn't been committed to the database yet
 - read constructor: `.read()` will take a pre-existing record from the database and turn it into an object
 
-If you need to commit an object to the database, use `User.create`, `Post.publish`, or `Token.create`
+If you need to commit an object to the database, use `Comment.publish`, `User.create`, `Post.publish`, or `Token.create`
 
 ## Database
 Please, I beg you, don't yell at me for storing the passwords in plaintext.
@@ -28,6 +28,17 @@ This table stores all the user-generated content. Each record contains:
 
 When the backend reads a record from the posts database, it will create an instance
 of the `Post` class, containing the same data values.
+
+### Comments
+This table stores comments on posts and (eventually) user profiles. Each record includes:
+- `id`: unique numeric ID
+- `content`: text in the comment
+- `author`: username of the comment's author
+- `root-comment`: the main comment in the thread, defaults to -1 if the comment isn't a reply
+- `date_posted`: the date of the comment's creation, in Unix time
+- `comment-type`: 0 for post comments, 1 for user comments
+- `comment-page`: the post id or username of the comment's location
+- `replies`: a JSON list of the ID's of replies to the comment
 
 ### Users
 This table stores data about user accounts, including:

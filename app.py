@@ -1,5 +1,8 @@
+import json
 import sqlite3
 from flask import Flask, request, render_template, redirect, make_response, abort, jsonify
+
+from comment import Comment
 from post import Post
 from user import User
 from routes import routes, API
@@ -97,8 +100,11 @@ def post(post_id):
     try:
         read_post = Post.read(connection, post_id)
         author = User.read(connection, read_post.author)
+        comments = []
+        for comment_id in read_post.comments:
+            comments.append(Comment.read(connection, comment_id))
         connection.close()
-        return render_template('posts/post.html', routes=routes, user=local_user, post=read_post, author=author)
+        return render_template('posts/post.html', routes=routes, user=local_user, post=read_post, author=author, API=API, comments=comments)
     except NameError:
         abort(404, "Post not found")
 
@@ -291,6 +297,18 @@ def follow_user(username):
         return jsonify(response)
     except NameError:
         abort(404, "User not found")
+
+@app.route(API["comment_post"].format("<int:post_id>"), methods=['POST'])
+def comment_post(post_id):
+    connection = sqlite3.connect('idiotnet.sqlite')
+    local_user = check_token(connection, request.cookies)
+    try:
+        content = request.form.get("content")
+        c = Comment(content, local_user.username, post_id)
+        c.publish(connection, local_user)
+        return redirect(routes["post"].format(post_id))
+    except NameError:
+        abort(404, "Post not found")
 
 @app.route("/static/<path:file>")
 def static_file(file):

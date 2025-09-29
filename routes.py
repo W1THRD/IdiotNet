@@ -18,4 +18,5 @@ routes = {
 API = {
     "like_post": "/api/posts/{}/like",
     "follow_user": "/api/users/{}/follow",
+    "comment_post": "/api/posts/{}/comment"
 }

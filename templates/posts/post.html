@@ -9,4 +9,5 @@
     <button id="like" data-id="{{ post.post_id }}" data-like="{{ not post.post_id in user.liked_posts }}"></button>
     {% endif %}
     <p>{{ post.content }}</p>
+    {% include 'comments.html' %}
 {% endblock %}

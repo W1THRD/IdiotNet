@@ -1,4 +1,6 @@
 import datetime
+import json
+
 from routes import routes
 
 class Post:
@@ -11,14 +13,15 @@ class Post:
         self.is_published = False
         self.likes = 0
         self.url = None
+        self.comments = []
 
     def publish(self, connection, user):
         if not self.is_published:
             self.date_posted = datetime.datetime.now()
             self.is_published = True
             cursor = connection.cursor()
-            query = "INSERT INTO posts (title, content, author, date_posted, likes) VALUES (?, ?, ?, ?, ?)"
-            data = (self.title, self.content, self.author, self.date_posted, self.likes)
+            query = "INSERT INTO posts (title, content, author, date_posted, likes, comments) VALUES (?, ?, ?, ?, ?, ?)"
+            data = (self.title, self.content, self.author, self.date_posted, self.likes, json.dumps(self.comments))
             cursor.execute(query, data)
             connection.commit()
             self.post_id = cursor.lastrowid
@@ -35,6 +38,15 @@ class Post:
         self.likes = int(cursor.fetchone()[0])
         self.likes += 1 if add_like else -1
         cursor.execute("UPDATE posts SET likes=? WHERE id=?", (self.likes, self.post_id,))
+        connection.commit()
+        cursor.close()
+
+    def add_comment(self, connection, comment_id):
+        cursor = connection.cursor()
+        cursor.execute("SELECT comments from posts WHERE id=?", (self.post_id,))
+        self.comments = json.loads(cursor.fetchone()[0])
+        self.comments.append(comment_id)
+        cursor.execute("UPDATE posts SET comments = ? WHERE id=?", (json.dumps(self.comments), self.post_id))
         connection.commit()
         cursor.close()
 
@@ -58,6 +70,7 @@ class Post:
         p.likes = record[5]
         p.is_published = True
         p.url = routes["post"].format(p.post_id)
+        p.comments = json.loads(record[6])
         return p
 
     @staticmethod
