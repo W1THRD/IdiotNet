@@ -11,6 +11,9 @@ $(document).ready(function() {
     }else{
         $("#follow").text("Unfollow");
     }
+    $('form').on('submit', function () {
+        $('.submit').prop('disabled', true); // Disable the submit button
+    });
   $("#like").click(function() {
       const post_id = $('#like').data('id');
       const url = '/api/posts/' + post_id + '/like';
