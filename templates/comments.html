@@ -13,6 +13,17 @@
                         <a href="{{ routes["user"].format(reply.author) }}">{{ reply.author }}</a>: {{ reply.content }}
                     </li>
                 {% endfor %}
+                {% if user %}
+                    <li>
+                        <details>
+                            <summary>Reply...</summary>
+                            <form action="{{ API["reply_comment"].format(comment.comment_id) }}" method="POST">
+                                <input id="content" name="content" placeholder="Hey.....">
+                                <input type="submit" value="Submit">
+                            </form>
+                        </details>
+                    </li>
+                {% endif %}
             </ul>
         </li>
     {% endfor %}

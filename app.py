@@ -310,6 +310,20 @@ def comment_post(post_id):
     except NameError:
         abort(404, "Post not found")
 
+@app.route(API["reply_comment"].format("<int:root_comment_id>"), methods=['POST'])
+def reply_comment(root_comment_id):
+    connection = sqlite3.connect('idiotnet.sqlite')
+    local_user = check_token(connection, request.cookies)
+    try:
+        content = request.form.get("content")
+        root_comment = Comment.read(connection, root_comment_id)
+        c = Comment(content, local_user.username, root_comment.comment_page, root_comment=root_comment_id)
+        c.publish(connection, local_user)
+        connection.close()
+        return redirect(routes["post"].format(root_comment.comment_page))
+    except NameError:
+        abort(404, "Post not found")
+
 @app.route("/static/<path:file>")
 def static_file(file):
     return static_file(file)

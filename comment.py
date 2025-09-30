@@ -45,10 +45,11 @@ class Comment:
             if data is None:
                 raise NameError("Comment not found")
             else:
-                self.replies = json.loads(data[0])
-                self.replies.append(comment_id)
+                comment_ids = json.loads(data[0])
+                comment_ids.append(comment_id)
                 query = "UPDATE comments SET replies=? WHERE id=?"
-                cursor.execute(query, (json.dumps(self.replies), comment_id))
+                cursor.execute(query, (json.dumps(comment_ids), self.comment_id))
+                self.replies.append(Comment.read(connection, comment_id))
                 connection.commit()
                 cursor.close()
         else:
@@ -66,6 +67,8 @@ class Comment:
             c = Comment(data[1], data[2], data[6], data[5], data[3])
             c.comment_id = data[0]
             c.date_posted = datetime.datetime.strptime(data[4], "%Y-%m-%d %H:%M:%S.%f")
-            c.comments = json.loads(data[7])
+            comment_ids = json.loads(data[7])
+            for reply_id in comment_ids:
+                c.replies.append(Comment.read(connection, reply_id))
             return c
 
