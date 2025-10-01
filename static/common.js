@@ -1,3 +1,11 @@
+function sanitizeHTML(str) {
+  return str.replace(/[<>"'&]/g, function(match) {
+    return "&#" + match.charCodeAt(0) + ";";
+  });
+}
+
+const urlRegex = /(?<=\[)(.*?)(?=\])/ig;
+
 $(document).ready(function() {
     let like_post = $('#like').data('like') === "True";
     if(like_post){
@@ -14,6 +22,7 @@ $(document).ready(function() {
     $('form').on('submit', function () {
         $('.submit').prop('disabled', true); // Disable the submit button
     });
+
   $("#like").click(function() {
       const post_id = $('#like').data('id');
       const url = '/api/posts/' + post_id + '/like';

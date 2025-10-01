@@ -8,8 +8,11 @@ from user import User
 from routes import routes, API
 from auth_token import Token
 import os
-app = Flask(__name__)
+import markdown
+from markupsafe import Markup
+import html
 
+app = Flask(__name__)
 
 def latest_posts(count:int, offset=0, search_user:User=None, sort_by="latest", filter=None) -> tuple:
     connection = sqlite3.connect('idiotnet.sqlite')
@@ -99,6 +102,7 @@ def post(post_id):
     local_user = check_token(connection, request.cookies)
     try:
         read_post = Post.read(connection, post_id)
+        read_post.content = Markup(markdown.markdown(read_post.content))
         author = User.read(connection, read_post.author)
         comments = []
         for comment_id in read_post.comments:

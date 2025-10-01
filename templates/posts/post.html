@@ -8,6 +8,6 @@
     {% if user %}
     <button id="like" data-id="{{ post.post_id }}" data-like="{{ not post.post_id in user.liked_posts }}"></button>
     {% endif %}
-    <pre id="post-content">{{ post.content }}</pre>
+    <div id="post-content">{{ post.content|safe }}</div>
     {% include 'comments.html' %}
 {% endblock %}
