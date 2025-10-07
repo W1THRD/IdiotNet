@@ -1,4 +1,4 @@
-create table comments
+create table main.comments
 (
     id           integer
         constraint comments_pk
@@ -12,7 +12,19 @@ create table comments
     replies      TEXT    default '[]'
 );
 
-create table posts
+create table main.images
+(
+    id            integer         not null
+        constraint images_pk
+            primary key,
+    title         TEXT default '',
+    caption       TEXT default '',
+    author        TEXT default '' not null,
+    date_uploaded integer,
+    image         BLOB            not null
+);
+
+create table main.posts
 (
     id          integer not null
         constraint posts_pk
@@ -25,7 +37,22 @@ create table posts
     comments    TEXT    default '[]'
 );
 
-create table tokens
+create table main.sqlite_master
+(
+    type     TEXT,
+    name     TEXT,
+    tbl_name TEXT,
+    rootpage INT,
+    sql      TEXT
+);
+
+create table main.sqlite_sequence
+(
+    name,
+    seq
+);
+
+create table main.tokens
 (
     id          TEXT    not null
         constraint tokens_pk
@@ -34,7 +61,7 @@ create table tokens
     valid_until integer not null
 );
 
-create table users
+create table main.users
 (
     username     TEXT not null
         constraint users_pk
