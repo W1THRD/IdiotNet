@@ -1,10 +1,3 @@
-function sanitizeHTML(str) {
-  return str.replace(/[<>"'&]/g, function(match) {
-    return "&#" + match.charCodeAt(0) + ";";
-  });
-}
-
-const urlRegex = /(?<=\[)(.*?)(?=\])/ig;
 
 $(document).ready(function() {
     let like_post = $('#like').data('like') === "True";
