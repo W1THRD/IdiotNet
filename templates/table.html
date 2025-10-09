@@ -1,5 +1,5 @@
 <table id="latest-table">
-    <tr><th>Title</th><th>Excerpt</th><th>Author</th><th>Date Posted</th><th>Likes</th></tr>
+    <tr><th>Title</th><th>Excerpt</th><th>Author</th><th>Date Posted</th><th>Likes</th><th>Comments</th></tr>
     {% for post in posts %}
         <tr>
             <th><a href="{{ routes["post"].format(post.post_id) }}">{{ post.title[:12] }}</a></th>
@@ -7,6 +7,7 @@
             <th><a href="{{ routes["user"].format(post.author) }}">{{ post.author }}</a></th>
             <th>{{ post.date_posted.strftime("%Y-%m-%d %H:%M:%S.%f") }}</th>
             <th>{{ post.likes }}</th>
+            <th>{{ post.comments|length }}</th>
         </tr>
     {% endfor %}
 </table>
