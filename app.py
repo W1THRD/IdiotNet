@@ -59,7 +59,8 @@ def user(username):
         posts_latest = latest_posts(3, 0, search_user)
         posts_liked = latest_posts(3, 0, search_user, filter="liked")
         return render_template('users/user.html', routes=routes, posts_latest=posts_latest, posts_liked=posts_liked, user=local_user, search_user=search_user)
-    except NameError:
+    except NameError as e:
+        print(e)
         abort(404, "User not found")
 
 @app.route(routes["user_posts"].format("<username>"))

@@ -110,10 +110,25 @@ class User:
 
     def latest(self, connection, count, offset=0):
         posts = []
+        deleted = []
         self.posts.sort(reverse=True)
         for post_id in self.posts[offset:offset+count]:
-            posts.append(Post.read(connection, post_id))
+            try:
+                posts.append(Post.read(connection, post_id))
+            except NameError:
+                deleted.append(post_id)
+        self.prune_posts(connection, deleted)
         return posts
+
+    def prune_posts(self, connection, post_ids: list[int]):
+        cursor = connection.cursor()
+        cursor.execute("SELECT posts FROM users WHERE username = ?", (self.username,))
+        self.posts = json.loads(cursor.fetchone()[0])
+        for post_id in post_ids:
+            self.posts.remove(post_id)
+        cursor.execute("UPDATE users SET posts = ? WHERE username = ?", (json.dumps(self.posts), self.username))
+        connection.commit()
+        cursor.close()
 
     def liked(self, connection, count, offset=0):
         posts = []
