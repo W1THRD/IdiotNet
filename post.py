@@ -20,7 +20,7 @@ class Post:
             self.date_posted = datetime.datetime.now()
             self.is_published = True
             cursor = connection.cursor()
-            query = "INSERT INTO posts (title, content, author, date_posted, likes, comments) VALUES (?, ?, ?, ?, ?, ?)"
+            query = "INSERT INTO posts (title, content, author, date_posted, likes, comments) VALUES (%s, %s, %s, %s, %s, %s)"
             data = (self.title, self.content, self.author, self.date_posted, self.likes, json.dumps(self.comments))
             cursor.execute(query, data)
             connection.commit()
@@ -34,19 +34,19 @@ class Post:
     def like(self, connection, user, add_like:bool=True):
         user.like_post(connection, self.post_id, add_like)
         cursor = connection.cursor()
-        cursor.execute("SELECT likes from posts WHERE id=?", (self.post_id,))
+        cursor.execute("SELECT likes from posts WHERE id=%s", (self.post_id,))
         self.likes = int(cursor.fetchone()[0])
         self.likes += 1 if add_like else -1
-        cursor.execute("UPDATE posts SET likes=? WHERE id=?", (self.likes, self.post_id,))
+        cursor.execute("UPDATE posts SET likes=%s WHERE id=%s", (self.likes, self.post_id,))
         connection.commit()
         cursor.close()
 
     def add_comment(self, connection, comment_id):
         cursor = connection.cursor()
-        cursor.execute("SELECT comments from posts WHERE id=?", (self.post_id,))
+        cursor.execute("SELECT comments from posts WHERE id=%s", (self.post_id,))
         self.comments = json.loads(cursor.fetchone()[0])
         self.comments.append(comment_id)
-        cursor.execute("UPDATE posts SET comments = ? WHERE id=?", (json.dumps(self.comments), self.post_id))
+        cursor.execute("UPDATE posts SET comments = %s WHERE id=%s", (json.dumps(self.comments), self.post_id))
         connection.commit()
         cursor.close()
 
@@ -54,7 +54,7 @@ class Post:
     @staticmethod
     def read(connection, post_id:int):
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM posts WHERE id = ?", (post_id,))
+        cursor.execute("SELECT * FROM posts WHERE id = %s", (post_id,))
         data = cursor.fetchone()
         if data is None:
             raise NameError("Post not found")
@@ -66,7 +66,7 @@ class Post:
     def record_to_object(record):
         p = Post(title=record[1], content=record[2], author=record[3])
         p.post_id = record[0]
-        p.date_posted = datetime.datetime.strptime(record[4], "%Y-%m-%d %H:%M:%S.%f")
+        p.date_posted = record[4]
         p.likes = record[5]
         p.is_published = True
         p.url = routes["post"].format(p.post_id)
@@ -77,11 +77,11 @@ class Post:
     def latest(connection, count:int, offset:int=0, sort_by:str="latest"):
         cursor = connection.cursor()
         if sort_by == "latest":
-            query = "SELECT * FROM posts ORDER BY date_posted DESC LIMIT ?, ?"
+            query = "SELECT * FROM posts ORDER BY date_posted DESC OFFSET %s LIMIT %s"
         elif sort_by == "popular":
-            query = "SELECT * FROM posts ORDER BY likes DESC LIMIT ?, ?"
+            query = "SELECT * FROM posts ORDER BY likes DESC OFFSET %s LIMIT %s"
         else:
-            query = "SELECT * FROM posts ORDER BY date_posted DESC LIMIT ?, ?"
+            query = "SELECT * FROM posts ORDER BY date_posted DESC OFFSET %s LIMIT %s"
         cursor.execute(query, (offset, count))
         data = cursor.fetchall()
         posts = []

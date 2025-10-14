@@ -10,12 +10,32 @@ from auth_token import Token
 import os
 import markdown
 from markupsafe import Markup
-import html
+from dotenv import load_dotenv
+from supabase import create_client, Client
+import psycopg2
 
+# Set up database connection
+load_dotenv()
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
+db_name = os.getenv("DB_NAME")
+def get_db_connection():
+    connection = psycopg2.connect(
+        dbname=db_name,
+        user=db_user,
+        password=db_password,
+        host=db_host,
+        port=db_port
+    )
+    return connection
+
+# Set up Flask app
 app = Flask(__name__)
 
 def latest_posts(count:int, offset=0, search_user:User=None, sort_by="latest", filter=None) -> tuple:
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     if not search_user:
         posts = Post.latest(connection, count, offset*count, sort_by)
     else:
@@ -33,14 +53,14 @@ def paged_posts(page:int, search_user:User=None, sort_by="latest", filter=None) 
 
 @app.route(routes["home"])
 def index():
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
     return render_template('index.html', routes=routes, user=local_user, latest_posts=latest_posts)
 
 @app.route(routes["latest"])
 def latest():
     sort_by = request.args.get("sort_by")
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
     page = request.args.get('page')
     if not page:
@@ -53,7 +73,7 @@ def latest():
 @app.route(routes["user"].format("<username>"))
 def user(username):
     try:
-        connection = sqlite3.connect('idiotnet.sqlite')
+        connection = get_db_connection()
         local_user = check_token(connection, request.cookies)
         search_user = User.read(connection, username)
         posts_latest = latest_posts(3, 0, search_user)
@@ -66,7 +86,7 @@ def user(username):
 @app.route(routes["user_posts"].format("<username>"))
 def user_posts(username):
     try:
-        connection = sqlite3.connect('idiotnet.sqlite')
+        connection = get_db_connection()
         local_user = check_token(connection, request.cookies)
         page = request.args.get('page')
         if not page:
@@ -83,7 +103,7 @@ def user_posts(username):
 @app.route(routes["user_liked_posts"].format("<username>"))
 def user_liked_posts(username):
     try:
-        connection = sqlite3.connect('idiotnet.sqlite')
+        connection = get_db_connection()
         local_user = check_token(connection, request.cookies)
         page = request.args.get('page')
         if not page:
@@ -99,7 +119,7 @@ def user_liked_posts(username):
 
 @app.route(routes["post"].format("<int:post_id>"))
 def post(post_id):
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
     try:
         read_post = Post.read(connection, post_id)
@@ -126,7 +146,7 @@ def check_token(connection, cookies):
 
 @app.route(routes["login"], methods=['GET', 'POST'])
 def login():
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
 
     if local_user:
@@ -161,7 +181,7 @@ def login():
 
 @app.route(routes["new_post"], methods=['GET', 'POST'])
 def new_post():
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
 
     if not local_user:
@@ -182,7 +202,7 @@ def new_post():
 
 @app.route(routes["user_edit"].format("<username>"), methods=['GET', 'POST'])
 def user_edit(username):
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
 
     if not local_user:
@@ -201,7 +221,7 @@ def user_edit(username):
 
 @app.route(routes["signup"], methods=['GET', 'POST'])
 def signup():
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
 
     if local_user:
@@ -238,13 +258,13 @@ def signup():
 
 @app.route(routes["about"])
 def about():
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
     return render_template('about.html', routes=routes, user=local_user)
 
 @app.route(routes["logout"])
 def logout():
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
 
     if not local_user:
@@ -254,7 +274,7 @@ def logout():
         resp = redirect(routes["home"])
         token_id = request.cookies['token']
         cursor = connection.cursor()
-        cursor.execute("DELETE FROM tokens WHERE id = ?", (token_id,))
+        cursor.execute("DELETE FROM tokens WHERE id = %s", (token_id,))
         connection.commit()
         cursor.close()
         resp.delete_cookie('token')
@@ -263,7 +283,7 @@ def logout():
 
 @app.route(API["like_post"].format("<int:post_id>"), methods=['POST'])
 def like_post(post_id):
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
     try:
         json_data = request.get_json()
@@ -284,7 +304,7 @@ def like_post(post_id):
 
 @app.route(API["follow_user"].format("<username>"), methods=['POST'])
 def follow_user(username):
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
     try:
         json_data = request.get_json()
@@ -305,7 +325,7 @@ def follow_user(username):
 
 @app.route(API["comment_post"].format("<int:post_id>"), methods=['POST'])
 def comment_post(post_id):
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
     try:
         content = request.form.get("content")
@@ -317,7 +337,7 @@ def comment_post(post_id):
 
 @app.route(API["reply_comment"].format("<int:root_comment_id>"), methods=['POST'])
 def reply_comment(root_comment_id):
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     local_user = check_token(connection, request.cookies)
     try:
         content = request.form.get("content")
@@ -334,7 +354,7 @@ def static_file(file):
     return static_file(file)
 
 def create_db():
-    connection = sqlite3.connect('idiotnet.sqlite')
+    connection = get_db_connection()
     with open('create_db.sql', 'r') as f:
         sql_script = f.read()
         connection.executescript(sql_script)

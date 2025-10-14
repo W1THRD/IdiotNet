@@ -20,7 +20,7 @@ class Comment:
             self.date_posted = datetime.datetime.now()
             self.is_published = True
             cursor = connection.cursor()
-            query = "INSERT INTO comments (content, author, root_comment, date_posted, comment_type, comment_page, replies) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            query = "INSERT INTO comments (content, author, root_comment, date_posted, comment_type, comment_page, replies) VALUES (%s, %s, %s, %s, %s, %s, %s)"
             data = (self.content, self.author, self.root_comment, self.date_posted, self.comment_type, self.comment_page, json.dumps(self.replies))
             cursor.execute(query, data)
             connection.commit()
@@ -39,7 +39,7 @@ class Comment:
     def add_reply(self, connection, comment_id):
         if self.is_root:
             cursor = connection.cursor()
-            query = "SELECT replies FROM comments WHERE id=?"
+            query = "SELECT replies FROM comments WHERE id=%s"
             cursor.execute(query, (self.comment_id,))
             data = cursor.fetchone()
             if data is None:
@@ -47,7 +47,7 @@ class Comment:
             else:
                 comment_ids = json.loads(data[0])
                 comment_ids.append(comment_id)
-                query = "UPDATE comments SET replies=? WHERE id=?"
+                query = "UPDATE comments SET replies=%s WHERE id=%s"
                 cursor.execute(query, (json.dumps(comment_ids), self.comment_id))
                 self.replies.append(Comment.read(connection, comment_id))
                 connection.commit()
@@ -58,7 +58,7 @@ class Comment:
     @staticmethod
     def read(connection, comment_id):
         cursor = connection.cursor()
-        query = "SELECT * FROM comments WHERE id=?"
+        query = "SELECT * FROM comments WHERE id=%s"
         cursor.execute(query, (comment_id,))
         data = cursor.fetchone()
         if data is None:

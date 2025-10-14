@@ -18,7 +18,7 @@ class Token:
             self.valid_until = datetime.now() + timedelta(days=7)
             self.is_created = True
             cursor = connection.cursor()
-            query = "INSERT INTO tokens (id, username, valid_until) VALUES (?, ?, ?)"
+            query = "INSERT INTO tokens (id, username, valid_until) VALUES (%s, %s, %s)"
             data = (self.token_id, self.username, self.valid_until)
             cursor.execute(query, data)
             connection.commit()
@@ -29,7 +29,7 @@ class Token:
     @staticmethod
     def read(connection, token_id):
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM tokens WHERE id = ?", (token_id,))
+        cursor.execute("SELECT * FROM tokens WHERE id = %s", (token_id,))
         data = cursor.fetchone()
         if data is None:
             print(f"{token_id} not found")
@@ -37,6 +37,6 @@ class Token:
         else:
             t = Token(data[1])
             t.token_id = token_id
-            t.valid_until = datetime.strptime(data[2], "%Y-%m-%d %H:%M:%S.%f")
+            t.valid_until = data[2]
             t.is_created = True
             return t

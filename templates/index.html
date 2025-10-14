@@ -5,7 +5,7 @@
     <h1>Welcome to IdiotNet!</h1>
     <h2>Latest Posts</h2>
     <ol id="latest">
-        {% for post in latest_posts(3) %}
+        {% for post in latest_posts(10) %}
             <li><a href="{{ post.url }}">{{ post.title }}</a></li>
         {% endfor %}
     </ol>
