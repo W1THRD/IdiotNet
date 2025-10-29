@@ -4,22 +4,22 @@ import uuid
 from user import User
 
 class Token:
-    def __init__(self, username):
+    def __init__(self, user_id):
         self.token_id = str(uuid.uuid4())
-        self.username = username
+        self.user_id = user_id
         self.valid_until = None
         self.is_created = False
     def create(self, connection):
         if not self.is_created:
             try:
-                user = User.read(connection, self.username)
+                user = User.read(connection, self.user_id)
             except Exception as e:
                 raise Exception("User not found")
             self.valid_until = datetime.now() + timedelta(days=7)
             self.is_created = True
             cursor = connection.cursor()
-            query = "INSERT INTO tokens (id, username, valid_until) VALUES (%s, %s, %s)"
-            data = (self.token_id, self.username, self.valid_until)
+            query = "INSERT INTO tokens (id, user_id, valid_until) VALUES (%s, %s, %s)"
+            data = (self.token_id, self.user_id, self.valid_until)
             cursor.execute(query, data)
             connection.commit()
             cursor.close()

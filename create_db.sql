@@ -1,77 +1,76 @@
-create table main.comments
+create table public.comments
 (
-    id           integer
+    id           integer generated always as identity (minvalue 0)
         constraint comments_pk
-            primary key autoincrement,
-    content      TEXT    default '',
-    author       TEXT              not null,
-    root_comment integer default -1,
-    date_posted  integer           not null,
-    comment_type integer default 0 not null,
-    comment_page integer           not null,
-    replies      TEXT    default '[]'
+            primary key,
+    content      text    default ''::text,
+    author       integer                       not null,
+    root_comment integer default '-1'::integer not null,
+    date_posted  timestamp                     not null,
+    comment_type integer default 0             not null,
+    comment_page integer                       not null,
+    replies      integer[]
 );
 
-create table main.images
+alter table public.comments
+    owner to porte;
+
+create table public.images
 (
-    id            integer         not null
+    id            integer generated always as identity (minvalue 0)
         constraint images_pk
             primary key,
-    title         TEXT default '',
-    caption       TEXT default '',
-    author        TEXT default '' not null,
-    date_uploaded integer,
-    image         BLOB            not null
+    title         text default ''::text,
+    caption       text default ''::text,
+    author        integer not null,
+    date_uploaded timestamp
 );
 
-create table main.posts
+alter table public.images
+    owner to porte;
+
+create table public.posts
 (
-    id          integer not null
+    id          integer generated always as identity (minvalue 0)
         constraint posts_pk
-            primary key autoincrement,
-    title       TEXT    default 'Untitled',
-    content     TEXT,
-    author      TEXT    not null,
-    date_posted integer,
-    likes       integer default 0,
-    comments    TEXT    default '[]'
-);
-
-create table main.sqlite_master
-(
-    type     TEXT,
-    name     TEXT,
-    tbl_name TEXT,
-    rootpage INT,
-    sql      TEXT
-);
-
-create table main.sqlite_sequence
-(
-    name,
-    seq
-);
-
-create table main.tokens
-(
-    id          TEXT    not null
-        constraint tokens_pk
-            unique,
-    username    TEXT    not null,
-    valid_until integer not null
-);
-
-create table main.users
-(
-    username     TEXT not null
-        constraint users_pk
             primary key,
-    date_created integer,
-    password     TEXT not null,
-    followers    TEXT default '[]',
-    posts        TEXT default '[]',
-    following    TEXT default '[]',
-    liked_posts  TEXT default '[]',
-    bio          TEXT default ''
+    title       text    default 'Untitled Post'::text not null,
+    content     text    default ''::text              not null,
+    author      integer                               not null,
+    date_posted timestamp,
+    likes       integer default 0,
+    comments    text[]  default '{}'::text[]          not null
 );
+
+alter table public.posts
+    owner to porte;
+
+create table public.tokens
+(
+    id          uuid      not null,
+    user_id     integer   not null,
+    valid_until timestamp not null
+);
+
+alter table public.tokens
+    owner to porte;
+
+create table public.users
+(
+    id            integer generated always as identity (minvalue 0),
+    username      varchar(15)                       not null,
+    email         varchar(60),
+    date_created  timestamp                         not null,
+    password_hash varchar(255)                      not null,
+    posts     integer[] default '{}'::integer[] not null,
+    followers     integer[] default '{}'::integer[] not null,
+    following     integer[] default '{}'::integer[] not null,
+    liked_posts   integer[] default '{}'::integer[] not null,
+    bio           text      default ''::text,
+    constraint users_pk
+        primary key (id, username)
+);
+
+alter table public.users
+    owner to porte;
 

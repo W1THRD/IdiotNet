@@ -2,12 +2,14 @@ import datetime
 import json
 
 from post import Post
+from user import User
 
 class Comment:
-    def __init__(self, content, author, comment_page, comment_type=0, root_comment=-1):
+    def __init__(self, content, author:int, comment_page, comment_type=0, root_comment=-1):
         self.comment_id = 0
         self.content = content
         self.author = author
+        self.author_name = None
         self.root_comment = root_comment
         self.comment_type = comment_type
         self.date_posted = None
@@ -15,16 +17,18 @@ class Comment:
         self.is_published = False
         self.is_root = root_comment == -1
         self.replies = []
+
     def publish(self, connection, user):
         if not self.is_published:
             self.date_posted = datetime.datetime.now()
             self.is_published = True
+            self.author_name = user.name
             cursor = connection.cursor()
-            query = "INSERT INTO comments (content, author, root_comment, date_posted, comment_type, comment_page, replies) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            data = (self.content, self.author, self.root_comment, self.date_posted, self.comment_type, self.comment_page, json.dumps(self.replies))
+            query = "INSERT INTO comments (content, author, root_comment, date_posted, comment_type, comment_page, replies) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"
+            data = (self.content, self.author, self.root_comment, self.date_posted, self.comment_type, self.comment_page, self.replies)
             cursor.execute(query, data)
             connection.commit()
-            self.comment_id = cursor.lastrowid
+            self.comment_id = cursor.fetchone()[0]
             cursor.close()
             if self.is_root:
                 post = Post.read(connection, self.comment_page)
@@ -45,10 +49,10 @@ class Comment:
             if data is None:
                 raise NameError("Comment not found")
             else:
-                comment_ids = json.loads(data[0])
+                comment_ids = data[0]
                 comment_ids.append(comment_id)
                 query = "UPDATE comments SET replies=%s WHERE id=%s"
-                cursor.execute(query, (json.dumps(comment_ids), self.comment_id))
+                cursor.execute(query, (comment_ids, self.comment_id))
                 self.replies.append(Comment.read(connection, comment_id))
                 connection.commit()
                 cursor.close()
@@ -66,8 +70,10 @@ class Comment:
         else:
             c = Comment(data[1], data[2], data[6], data[5], data[3])
             c.comment_id = data[0]
-            c.date_posted = datetime.datetime.strptime(data[4], "%Y-%m-%d %H:%M:%S.%f")
-            comment_ids = json.loads(data[7])
+            c.author_name = User.read(connection, data[2]).username
+            print(c.author_name)
+            c.date_posted = data[4]
+            comment_ids = data[7]
             for reply_id in comment_ids:
                 c.replies.append(Comment.read(connection, reply_id))
             return c

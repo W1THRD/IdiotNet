@@ -11,7 +11,6 @@ import os
 import markdown
 from markupsafe import Markup
 from dotenv import load_dotenv
-from supabase import create_client, Client
 import psycopg2
 
 # Set up database connection
@@ -80,7 +79,6 @@ def user(username):
         posts_liked = latest_posts(3, 0, search_user, filter="liked")
         return render_template('users/user.html', routes=routes, posts_latest=posts_latest, posts_liked=posts_liked, user=local_user, search_user=search_user)
     except NameError as e:
-        print(e)
         abort(404, "User not found")
 
 @app.route(routes["user_posts"].format("<username>"))
@@ -127,7 +125,10 @@ def post(post_id):
         author = User.read(connection, read_post.author)
         comments = []
         for comment_id in read_post.comments:
-            comments.append(Comment.read(connection, comment_id))
+            try:
+                comments.append(Comment.read(connection, comment_id))
+            except NameError:
+                pass
         connection.close()
         return render_template('posts/post.html', routes=routes, user=local_user, post=read_post, author=author, API=API, comments=comments)
     except NameError:
@@ -137,7 +138,7 @@ def check_token(connection, cookies):
     if 'token' in cookies:
         try:
             token = Token.read(connection, cookies['token'])
-            local_user = User.read(connection, token.username)
+            local_user = User.read(connection, token.user_id)
             return local_user
         except NameError:
             return None
@@ -166,7 +167,7 @@ def login():
 
                 if local_user.password == password:
                     print(f"User {username} logged in successfully")
-                    token = Token(local_user.username)
+                    token = Token(local_user.user_id)
                     resp = make_response(redirect(routes["home"]))
                     token.create(connection)
                     connection.close()
@@ -195,7 +196,7 @@ def new_post():
             title = request.form.get('title')
             content = request.form.get('content')
 
-            staged_post = Post(title, content, local_user.username)
+            staged_post = Post(title, content, local_user.user_id)
             staged_post.publish(connection, local_user)
             print(f"{local_user.username} created post #{staged_post.post_id}")
             return redirect(staged_post.url)
@@ -329,7 +330,7 @@ def comment_post(post_id):
     local_user = check_token(connection, request.cookies)
     try:
         content = request.form.get("content")
-        c = Comment(content, local_user.username, post_id)
+        c = Comment(content, local_user.user_id, post_id)
         c.publish(connection, local_user)
         return redirect(routes["post"].format(post_id))
     except NameError:
@@ -342,7 +343,7 @@ def reply_comment(root_comment_id):
     try:
         content = request.form.get("content")
         root_comment = Comment.read(connection, root_comment_id)
-        c = Comment(content, local_user.username, root_comment.comment_page, root_comment=root_comment_id)
+        c = Comment(content, local_user.user_id, root_comment.comment_page, root_comment=root_comment_id)
         c.publish(connection, local_user)
         connection.close()
         return redirect(routes["post"].format(root_comment.comment_page))
@@ -352,14 +353,3 @@ def reply_comment(root_comment_id):
 @app.route("/static/<path:file>")
 def static_file(file):
     return static_file(file)
-
-def create_db():
-    connection = get_db_connection()
-    with open('create_db.sql', 'r') as f:
-        sql_script = f.read()
-        connection.executescript(sql_script)
-        connection.commit()
-    connection.close()
-
-if not os.path.exists('idiotnet.sqlite'):
-    create_db()
