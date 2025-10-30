@@ -1,5 +1,4 @@
-import datetime, json
-import time
+import datetime
 
 from post import Post
 from routes import routes
@@ -28,7 +27,7 @@ class User:
                 self.is_created = True
                 self.date_created = datetime.datetime.now()
                 self.url = routes["user"].format(self.username)
-                query = "INSERT INTO users (username, email, date_created, password_hash, followers, posts, following, liked_posts, bio) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id"
+                query = "INSERT INTO users (username, email, date_created, password_hash, followers, posts, following, liked_posts, bio) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id"
                 data = (self.username, self.email, self.date_created, self.password, self.followers, self.posts, self.following,
                         self.liked_posts, self.bio)
                 cursor.execute(query, data)
@@ -110,7 +109,7 @@ class User:
     def update_bio(self, connection, bio):
         self.bio = bio
         cursor = connection.cursor()
-        cursor.execute("UPDATE users SET bio = %s WHERE username = %s", (bio, self.username))
+        cursor.execute("UPDATE users SET bio = %s WHERE id = %s", (bio, self.user_id))
         connection.commit()
         cursor.close()
 

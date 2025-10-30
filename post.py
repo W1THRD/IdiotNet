@@ -1,14 +1,16 @@
 import datetime
-import json
 
 from routes import routes
+
+
 
 class Post:
     def __init__(self, title, content, author:int):
         self.post_id = -1
         self.title = title
         self.content = content
-        self.author = author
+        self.author_id = author
+        self.author_name = None
         self.date_posted = None
         self.is_published = False
         self.likes = 0
@@ -19,9 +21,10 @@ class Post:
         if not self.is_published:
             self.date_posted = datetime.datetime.now()
             self.is_published = True
+            self.author_name = user.username
             cursor = connection.cursor()
             query = "INSERT INTO posts (title, content, author, date_posted, likes, comments) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id"
-            data = (self.title, self.content, self.author, self.date_posted, self.likes, self.comments)
+            data = (self.title, self.content, self.author_id, self.date_posted, self.likes, self.comments)
             cursor.execute(query, data)
             connection.commit()
             self.post_id = cursor.fetchone()[0]
@@ -59,12 +62,14 @@ class Post:
         if data is None:
             raise NameError("Post not found")
         else:
-            return Post.record_to_object(data)
+            return Post.record_to_object(connection, data)
 
     @staticmethod
-    def record_to_object(record):
+    def record_to_object(connection, record):
+        from user import User
         p = Post(title=record[1], content=record[2], author=record[3])
         p.post_id = record[0]
+        p.author_name = User.read(connection, record[3]).username
         p.date_posted = record[4]
         p.likes = record[5]
         p.is_published = True
@@ -85,6 +90,6 @@ class Post:
         data = cursor.fetchall()
         posts = []
         for record in data:
-            p = Post.record_to_object(record)
+            p = Post.record_to_object(connection, record)
             posts.append(p)
         return posts

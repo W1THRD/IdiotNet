@@ -22,7 +22,7 @@ class Comment:
         if not self.is_published:
             self.date_posted = datetime.datetime.now()
             self.is_published = True
-            self.author_name = user.name
+            self.author_name = user.username
             cursor = connection.cursor()
             query = "INSERT INTO comments (content, author, root_comment, date_posted, comment_type, comment_page, replies) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"
             data = (self.content, self.author, self.root_comment, self.date_posted, self.comment_type, self.comment_page, self.replies)
@@ -71,7 +71,6 @@ class Comment:
             c = Comment(data[1], data[2], data[6], data[5], data[3])
             c.comment_id = data[0]
             c.author_name = User.read(connection, data[2]).username
-            print(c.author_name)
             c.date_posted = data[4]
             comment_ids = data[7]
             for reply_id in comment_ids:

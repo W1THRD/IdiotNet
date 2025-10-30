@@ -1,5 +1,3 @@
-import json
-import sqlite3
 from flask import Flask, request, render_template, redirect, make_response, abort, jsonify
 
 from comment import Comment
@@ -122,7 +120,7 @@ def post(post_id):
     try:
         read_post = Post.read(connection, post_id)
         read_post.content = Markup(markdown.markdown(read_post.content))
-        author = User.read(connection, read_post.author)
+        author = User.read(connection, read_post.author_id)
         comments = []
         for comment_id in read_post.comments:
             try:
@@ -246,7 +244,7 @@ def signup():
                 except NameError:
                     local_user = User(username=username, password=password)
                     local_user.create(connection)
-                    token = Token(local_user.username)
+                    token = Token(local_user.user_id)
                     resp = make_response(redirect(routes["home"]))
                     token.create(connection)
                     connection.close()
@@ -332,6 +330,7 @@ def comment_post(post_id):
         content = request.form.get("content")
         c = Comment(content, local_user.user_id, post_id)
         c.publish(connection, local_user)
+        print(f'{local_user.username} commented on post {post_id}')
         return redirect(routes["post"].format(post_id))
     except NameError:
         abort(404, "Post not found")
